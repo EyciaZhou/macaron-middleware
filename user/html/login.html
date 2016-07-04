@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+</head>
+<body>
+<link rel="stylesheet" type="text/css" href="/static/css/main.css">
+<div class="card card-container">
+<form class="ui form" action="./login" method="post">
+    <input type="hidden" name="_csrf" value="{{.csrf_token}}">
+    <h3 class="ui top attached header">
+        登录
+    </h3>
+    <h4 class="succ_color">{{.succ_info}}</h4>
+    <h4 class="error_color">{{.err_info}}</h4>
+    <div class="ui attached segment">
+            <input class="field" id="uname" name="uname" autofocus="" required="" placeholder="用户名">
+            <input class="field" id="password" name="password" type="password" required="" placeholder="密码">
+            {{.Captcha.CreateHtml}}
+            <input class="field" id="captcha" name="captcha" value="" autocomplete="off" placeholder="验证码">
+            <button class="ui green btn field">登录</button>
+    </div>
+</form>
+    <a href="./sign">没有账号？立即注册！</a>
+</div>
+</body>
+</html>
