@@ -113,7 +113,7 @@ func SaltPassword(pwdHash []byte, salt []byte) (saltedPwdSha256 []byte) {
 
 type UserStore interface {
 	AddUser(username string, email string, pwdSha256 []byte, nickname string) (string, error)
-	VerifyPassword(uname string, challenge []byte) (*UserFullInfo, error)
+	VerifyPassword(uname string, challenge []byte) (*UserInfo, error)
 	ChangeNickname(uname string, nickname string) error
 	ChangeHead(uname string, value string) error
 	ChangePassword(uname string, oldPwd []byte, newPwd []byte) error
@@ -159,7 +159,7 @@ func (db *MysqlStore) GetUserInfo(uname string) (*UserFullInfo, error) {
 	return userinfo, nil
 }
 
-func (db *MysqlStore) VerifyPassword(uname string, challenge []byte) (*UserFullInfo, error) {
+func (db *MysqlStore) VerifyPassword(uname string, challenge []byte) (*UserInfo, error) {
 	userinfo, err := db.GetUserInfo(uname)
 	if err != nil {
 		return nil, err
@@ -169,7 +169,7 @@ func (db *MysqlStore) VerifyPassword(uname string, challenge []byte) (*UserFullI
 		return nil, ERROR_WRONG_PASSWORD
 	}
 
-	return userinfo, nil
+	return &userinfo.UserInfo, nil
 }
 
 func (db *MysqlStore) ChangeNickname(uname string, nickname string) error {

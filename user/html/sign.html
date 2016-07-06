@@ -12,8 +12,8 @@
     <h3 class="ui top attached header">
         注册
     </h3>
-    <h4 class="succ_color">{{.succ_info}}</h4>
-    <h4 class="error_color">{{.err_info}}</h4>
+    <h4 class="succ_color">{{.succ_info}}{{.Flash.succ_info}}</h4>
+    <h4 class="error_color">{{.err_info}}{{.Flash.err_info}}</h4>
     <div class="ui attached segment">
             <input class="field" id="username" name="username" autofocus="" required="" placeholder="用户名">
             <input class="field" id="email" name="email" type="email" required="" placeholder="邮箱">

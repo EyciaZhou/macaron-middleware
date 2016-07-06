@@ -60,6 +60,8 @@ func (r *Render) JSON(status int, v interface{}) {
 
 func RendererAddon() macaron.Handler {
 	return func(ctx *macaron.Context, render macaron.Render) {
-		ctx.MapTo(Render{render.(*macaron.TplRender)}, (*macaron.Render)(nil))
+		r := &Render{render.(*macaron.TplRender)}
+		ctx.Render = r
+		ctx.MapTo(r, (*macaron.Render)(nil))
 	}
 }

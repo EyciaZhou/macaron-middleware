@@ -13,7 +13,8 @@ import (
 	"net/url"
 	"strconv"
 	"github.com/EyciaZhou/macaron-middleware/user"
-	"github.com/Sirupsen/logrus"
+	"log"
+	"reflect"
 )
 
 type Option struct {
@@ -83,13 +84,13 @@ func (p *QiniuAvatar) callbackHeaderAuthorization(Authorization string, Path str
 	return base64.URLEncoding.EncodeToString(hmac_sha1(([]byte)(Path + "\n" + Body), p.SecretKey)) == auth[1]
 }
 
-func (p *QiniuAvatar) CallbackHandler(ctx *macaron.Context, userProxy *user.UserProxy,  log *logrus.Logger) {
+func (p *QiniuAvatar) CallbackHandler(ctx *macaron.Context, userProxy *user.UserProxy,  log *log.Logger) {
 	reason := ""
 	e := (error)(nil)
 
 	defer func() {
 		if e != nil {
-			log.Errorln("QiniuAvatar:Callback", reason, e.Error())
+			log.Printf("QiniuAvatar:Callback", reason, e.Error())
 			ctx.JSON(http.StatusOK, errors.New(reason))
 		}
 	}()
@@ -134,12 +135,33 @@ func (p *QiniuAvatar) HeadTokenHandler(ctx *macaron.Context, userInfo *user.User
 }
 
 func (p *QiniuAvatar) GetHead(username string, value string) (string) {
-	return p.QiniuCDNUrl + username + "-head?v=" + value
+	return p.QiniuCDNUrl + "/" + username + "-head?v=" + value
 }
 
 func (p *QiniuAvatar) RouterGroup(m *macaron.Macaron) {
 	m.Get(p.APIPrefix + "/head_token", p.HeadTokenHandler)
-	m.Get(p.APIPrefix + "/callback", p.CallbackHandler)
+	m.Post(p.APIPrefix + "/callback", p.CallbackHandler)
+}
+
+type UserStoreWithAvatar struct {
+	user.UserStore
+	avatar *QiniuAvatar
+}
+
+func (p *UserStoreWithAvatar)VerifyPassword(uname string, challenge []byte) (*user.UserInfo, error) {
+	info, err := p.UserStore.VerifyPassword(uname, challenge)
+	if info != nil {
+		info.Head = p.avatar.GetHead(info.Id, info.Head)
+	}
+	return info, err
+}
+
+func (p *UserStoreWithAvatar)GetUserInfo(uname string) (*user.UserFullInfo, error) {
+	info, err := p.UserStore.GetUserInfo(uname)
+	if info != nil {
+		info.Head = p.avatar.GetHead(info.Id, info.Head)
+	}
+	return info, err
 }
 
 func QiniuAvatarStore(opt Option, m *macaron.Macaron) macaron.Handler {
@@ -148,10 +170,10 @@ func QiniuAvatarStore(opt Option, m *macaron.Macaron) macaron.Handler {
 	}
 
 	qiniuAvatarStore.RouterGroup(m)
+	proxy := m.GetVal(reflect.TypeOf((*user.UserProxy)(nil))).Interface().(*user.UserProxy)
+	proxy.UserStore = &UserStoreWithAvatar{proxy.UserStore, qiniuAvatarStore}
 
-	return func(userInfo *user.UserInfo) {
-		if userInfo != nil {
-			userInfo.Head = qiniuAvatarStore.GetHead(userInfo.Id, userInfo.Head)
-		}
+	return func() {
+
 	}
 }

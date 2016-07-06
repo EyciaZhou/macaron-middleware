@@ -65,6 +65,7 @@ func UserHandler(opt Options, m *macaron.Macaron) macaron.Handler {
 	store := dialFunc(opt.DialerAddress, m.GetVal(reflect.TypeOf((*log.Logger)(nil))).Interface().(*log.Logger))
 	user_controller := &UserProxy{store, opt}
 	user_controller.RouterGroup(m)
+	m.Map(user_controller)
 
 	return func(ctx *macaron.Context, f session.Store, cache cache.Cache) {
 		var userInfo *UserInfo
@@ -91,6 +92,5 @@ func UserHandler(opt Options, m *macaron.Macaron) macaron.Handler {
 			}
 		}
 		ctx.Map(userInfo)
-		ctx.Map(user_controller)
 	}
 }
